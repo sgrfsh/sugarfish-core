@@ -60,8 +60,8 @@ define('__DOCROOT__', '/repo/www/htdocs');
 // core db
 define('__DB__', 'dev');
 define('__DB_SERVER__', 'localhost');
-define('__DB_USERNAME__', 'root');
-define('__DB_PASSWORD__', 'th3d33ts');
+define('__DB_USERNAME__', 'username');
+define('__DB_PASSWORD__', 'password');
 
 /**
  * Third party settings

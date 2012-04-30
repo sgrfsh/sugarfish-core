@@ -1,0 +1,145 @@
+<?php
+/**
+ * File: Session.class.php
+ * Created on: Mon Jun 1 23:00 CST 2009
+ *
+ * @author		Ian
+ *
+ * @copyright 	2009 Ian Atkin
+ * @license		http://www.ianatkin.info/
+ * 
+ * @package sugarfish_core
+ */
+
+class Session {
+	private static $objSession;
+	private static $objSessionModel;
+	private static $blnInstance;
+
+	public static $blnLoggedIn;
+	public static $arrUser;
+	public static $strError;
+
+	/**
+	 * This faux constructor method throws a caller exception.
+	 * The DataModel object should never be instantiated!!!
+	 *
+	 * @return void
+	 */
+	public final function __construct() {
+		try {
+			$strMessage = "Session should never be instantiated. All methods and variables are publically statically accessible";
+		throw new CustomException(Exceptions::STATIC_CLASS_INSTANTIATION, $strMessage);
+		} catch (CustomException $e) {
+			print $e;
+			exit;
+		}
+	}
+
+	public static function Initialize() {
+		if (!self::$blnInstance) {
+			if (!self::$objSession = session_start()) {
+				try {
+					$strMessage = "Session was not started";
+					throw new CustomException(Exceptions::SESSION_START, $strMessage);
+				} catch (CustomException $e) {
+					print $e;
+					exit;
+				}
+			} else {
+				self::$objSessionModel = new SessionModel;
+				self::$strError = '';
+				self::$blnLoggedIn = $_SESSION['blnLoggedIn'];
+				self::$blnInstance = true;
+			}
+		} else {
+			$strMessage = "Session already established.\n";
+			throw new CustomException(Exceptions::MULTIPLE_SESSION_START, $strMessage);
+		}
+	}
+
+	public static function LogIn($strUsername, $strPassword = null, $blnAutoLogin = false) {
+		$arrResult = self::$objSessionModel->GetUser($strUsername);
+
+		if ($arrResult) {
+			$intUserId = $arrResult['user_id'];
+			$strStoredPassword = $arrResult['password'];
+			$strAlias = $arrResult['alias'];
+
+			if ($strStoredPassword == md5($strPassword) || $blnAutoLogin == true) {
+				self::$blnLoggedIn = true;
+				$_SESSION['blnLoggedIn'] = self::$blnLoggedIn;
+				self::$arrUser = array('user_id' => $intUserId, 'username' => $strUsername, 'alias' => $strAlias);
+				$_SESSION['arrUser'] = self::$arrUser;
+				session_write_close();
+
+				$objResult = self::$objSessionModel->UpdateCookie($intUserId);
+
+				if ($objResult) {
+					setcookie("blah_login", $strLoginCookie, time() + 60*60*24*7, "/");
+				}
+
+				// redirect
+				if (!$blnAutoLogin) {
+					self::ForwardTo('blahinterface');
+				}
+
+			} else {
+				Application::Log('login failed - password');
+				self::$strError = 'failed';
+				session_write_close();
+			}
+		}
+	}
+
+	/**
+	 * NULL the login_cookie column in the table, set the cookie timeout in the past
+	 * Doing both of these ensures that the user is logged out
+	 */
+	public static function LogOut() {
+		self::$objSessionModel->LogOut(self::$arrUser['user_id']);
+		setcookie("blah_login", "", time()-3600);
+		if (self::$blnLoggedIn) {
+			session_destroy();
+		}
+		self::ForwardTo('login');
+	}
+
+	public static function getUser($blnSecure = false) {
+		self::$blnLoggedIn = $_SESSION['blnLoggedIn'];
+		if (self::$blnLoggedIn) {
+			self::$arrUser = $_SESSION['arrUser'];
+		} else {
+			$blnValidCookie = false;
+			
+			if (strlen($strLoginCookie) > 0) {
+				$arrResult = $objSessionModel->GetUserFromCookie();
+				if ($arrResult) {
+					self::LogIn($arrResult['username'], null, true);
+					$blnValidCookie = true;
+				}
+			}
+
+			if ($blnValidCookie == false) {
+				if ($blnSecure) {
+					self::ForwardTo('login');
+					exit;
+				}
+			}
+		}
+		return;
+	}
+
+	public static function ForwardTo($strLocation) {
+		Application::Redirect(
+			UrlHandler::BuildUrl(
+				array(
+					'module'  	 => 'blah',
+					'controller' => 'blah',
+					'action' 	 => $strLocation
+				)
+			)
+		);
+	}
+}
+?>

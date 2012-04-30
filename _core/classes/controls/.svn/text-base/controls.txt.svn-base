@@ -1,0 +1,15 @@
+.--------------.
+| FormHandler  |
+|              |
+| .-objArray-. |
+| |          | |
+| | Controls |-|------> ControlBase
+| |          | |			|-TextBox
+| '----------' |			|-List
+'--------------'			|	'-ListItem
+							|-CheckBoxList
+							|	'-CheckBox	
+							|-RadioButtonList
+							|	'-RadioButton
+							|-Button
+							'-ImageButton

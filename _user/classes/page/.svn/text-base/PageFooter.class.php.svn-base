@@ -1,0 +1,39 @@
+<?php
+/**
+ * File: Footer.class.php
+ * Created on: Sun Jul 25 23:23 CST 2010
+ *
+ * @author Ian
+ *
+ * @copyright  2010 Ian Atkin
+ * @license    http://www.ianatkin.info/
+ * 
+ * @package sugarfish_core
+ */
+
+class PageFooter extends FooterBase {
+
+	public function __construct() {
+		parent::__construct();
+	}
+
+	protected function GetFooterContent() {
+		$strOutput = '<div id="page_footer">';
+		$strOutput .= '<div id="page_footer_lip">';
+		$strOutput .= sprintf('<div class="sfc_logo"><a href="/dialog/popup/show" id="sugarfish_core" class="popup" title="sugarfish core: a lightweight scaffold" width="600" height="540"><img src="%s/logos/sfc_logo.png" style="padding:10px" /></a></div>', __IMAGES__);
+		$strOutput .= '<div class="cf"></div>';
+		$strOutput .= sprintf('<div id="footnote">This site is powered by <strong>Sugarfish Core</strong> version %s<br />Copyright &copy;2008-%s, <a href="http://www.sugarfish.org/" target="_new">Ian Atkin</a></div>', __VERSION__, date("Y"));
+		$strOutput .= '</div>';
+
+		$strOutput .= '<div id="links">';
+		$strOutput .= '<div class="link first"><a href="/dialog/popup/show" id="resume_content" class="popup" title="r&eacute;sum&eacute; downloads" width="350" height="210"><img src="/assets/images/buttons/btn_resume.png" width="72" height="72" alt="r&eacute;sum&eacute;" /></a></div>';
+		$strOutput .= '<div class="link"><a href="/download?file=ian-atkin-portfolio.pdf&mime-type=pdf"><img src="/assets/images/buttons/btn_portfolio.png" width="72" height="72" alt="portfolio" /></a></div>';
+		$strOutput .= '<div class="link"><a href="/dialog/popup/show" id="contact" class="popup" title="make contact with me" width="780" height="300"><img src="/assets/images/buttons/btn_contact.png" width="72" height="72" alt="contact" /></a></div>';
+		$strOutput .= '</div>';
+
+		$strOutput .= '<div class="cf"></div>';
+
+		return $strOutput;
+	}
+}
+?>

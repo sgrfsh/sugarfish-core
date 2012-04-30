@@ -1,0 +1,92 @@
+<?php
+/**
+ * File: PageNavigator.class.php
+ * Created on: Sun Apr 19 22:10 CST 2009
+ *
+ * @author Ian
+ *
+ * @copyright  2009 Ian Atkin
+ * @license    http://www.ianatkin.info/
+ * 
+ * @package sugarfish_core
+ * @name PageNavigator
+ */
+
+class PageNavigator {
+	protected $strPageAction;
+	protected $intCurrentPage;
+	protected $intItemTotal;
+	protected $intItemsPerPage;
+	protected $blnUseAjax;
+	protected $strPagination;
+
+	public function __construct($strPageAction, $intCurrentPage, $intItemTotal, $intItemsPerPage = 25, $blnUseAjax = false) {
+		$this->strPageAction = $strPageAction;
+		$this->intCurrentPage = $intCurrentPage;
+		$this->intItemTotal = $intItemTotal;
+		$this->intItemsPerPage = $intItemsPerPage;
+		$this->blnUseAjax = $blnUseAjax;
+
+		$this->CreatePagination();
+	}
+
+	private function CreatePagination() {
+
+		// set up the variables we need
+		$intLastPage = ceil($this->intItemTotal/$this->intItemsPerPage);
+		$intPrevPage = $this->intCurrentPage - 1;
+		$intNextPage = $this->intCurrentPage + 1;
+		if (!$this->blnUseAjax) {
+			$strPrevLink = sprintf('<a href="%s%s" class="prevlink">Prev</a>', $this->strPageAction, $intPrevPage);
+			$strFirstPage = $this->intCurrentPage != 1?sprintf('<a href="%s1" class="firstpage">1</a>', $this->strPageAction):'<span class="selected">1</span>';
+			$strLastPage = $this->intCurrentPage != $intLastPage?sprintf('<a href="%s%s" class="lastpage">%s</a>', $this->strPageAction, $intLastPage, $intLastPage):sprintf('<span class="selected">%s</span>', $intLastPage);
+			$strNextLink = sprintf('<a href="%s%s" class="nextlink">Next</a>', $this->strPageAction, $intNextPage);
+		} else {
+			$strPrevLink = sprintf('<a href="javascript:void(0)" onclick="AjaxFunc(\'%s\', [\'%s\'])" class="prevlink">Prev</a>', $this->strPageAction, $intPrevPage);
+			$strFirstPage = $this->intCurrentPage != 1?sprintf('<a href="javascript:void(0)" onclick="AjaxFunc(\'%s\', [\'1\'])" class="firstpage">1</a>', $this->strPageAction):'<span class="selected">1</span>';
+			$strLastPage = $this->intCurrentPage != $intLastPage?sprintf('<a href="javascript:void(0)" onclick="AjaxFunc(\'%s\', [\'%s\'])" class="lastpage">%s</a>', $this->strPageAction, $intLastPage, $intLastPage):sprintf('<span class="selected">%s</span>', $intLastPage);
+			$strNextLink = sprintf('<a href="javascript:void(0)" onclick="AjaxFunc(\'%s\', [\'%s\'])" class="nextlink">Next</a>', $this->strPageAction, $intNextPage);
+		}
+		$strSeparator = '<span class="ellipsis">&hellip;</span>';
+
+		// create the pagination
+		$this->strPagination = '<div class="pagination">';
+		if ($this->intCurrentPage > 1) {
+			$this->strPagination .= $strPrevLink;
+		}
+		$this->strPagination .= $strFirstPage;
+		if ($this->intCurrentPage > 3) {
+			$this->strPagination .= $strSeparator;
+		}
+		for ($i=$this->intCurrentPage-1; $i < $this->intCurrentPage+2; $i++) {
+			if ($i > 1 && $i < $intLastPage) {
+				if (!$this->blnUseAjax) {
+					$this->strPagination .= $i != $this->intCurrentPage?sprintf('<a href="%s%s">%s</a>', $this->strPageAction, $i, $i):sprintf('<span class="selected">%s</span>', $i);
+				} else {
+					$this->strPagination .= $i != $this->intCurrentPage?sprintf('<a href="javascript:void(0)" onclick="AjaxFunc(\'%s\', [\'%s\'])">%s</a>', $this->strPageAction, $i, $i):sprintf('<span class="selected">%s</span>', $i);
+				}
+			}
+		}
+		if ($this->intCurrentPage < $intLastPage-2) {
+			$this->strPagination .= $strSeparator;
+		}
+		$this->strPagination .= $strLastPage;
+		if ($this->intCurrentPage < $intLastPage) {
+			$this->strPagination .= $strNextLink;
+		}
+		$this->strPagination .= '</div>';
+	}
+
+	public function __get($strName) {
+		switch ($strName) {
+			case 'Pagination':
+				return $this->strPagination;
+				break;
+			case 'DisplayPagination':
+				if ($this->intItemTotal > $this->intItemsPerPage) {
+					return true;
+				}
+		}
+	}
+}
+?>
